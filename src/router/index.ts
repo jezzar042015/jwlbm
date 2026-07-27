@@ -12,7 +12,12 @@ const router = createRouter({
       name: "import",
       path: "/import",
       component: () => import("../views/FileImport.vue"),
-    }
+    },
+    {
+      name: "databases",
+      path: "/databases",
+      component: () => import("../views/DatabasesList.vue"),
+    },
   ],
 })
 

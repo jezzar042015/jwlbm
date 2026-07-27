@@ -21,8 +21,7 @@ export function useImportBackup() {
 
         const instance = {
             id: crypto.randomUUID(),
-            name: "My Backup 2026",
-            version: "15.1",
+            name: file.name,
             importedAt: new Date(),
             isMaster: false,
             db,

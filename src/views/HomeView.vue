@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="p-20">
         <div>
             Welcome to the JW Library Backup Viewer!
         </div>

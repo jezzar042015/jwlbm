@@ -8,3 +8,17 @@ export interface DatabaseInstance {
     db: DatabaseService;
     importedAt: Date;
 }
+
+export interface DatabaseManifest {
+    name: string
+    creationDate: string
+    version: number
+    type: number
+    userDataBackup: {
+        lastModifiedDate: string
+        deviceName: string
+        databaseName: string
+        hash: string
+        schemaVersion: number
+    }
+}

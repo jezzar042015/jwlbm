@@ -3,7 +3,7 @@ import { DatabaseService } from "./DatabaseService";
 import { NOTE_ALL_LIST, NOTE_COUNT } from "@/database/sql/notes";
 
 export class NoteService {
-    constructor(private database: DatabaseService) { }
+    constructor(readonly database: DatabaseService) { }
 
     getCount(): number {
         const result = this.database.query(NOTE_COUNT);
