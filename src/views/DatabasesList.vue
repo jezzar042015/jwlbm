@@ -1,11 +1,12 @@
 <template>
-    <div>
-        <div>
-            <button @click="gotoImport" class="shadow p-2">Import</button>
+    <div class="p-6 bg-gray-50 min-h-screen">
+        <div class="px-5 py-2">
+            <button @click="gotoImport" class="shadow uppercase text-xs px-4 py-2 bg-white rounded-full">Add
+                Database</button>
         </div>
         <div class="px-5 py-2 space-y-4 flex flex-col">
-            <div v-for="db in dbStore.databases" :key="db.id"
-                class="shadow p-4 rounded-lg w-full border-l-4 border-violet-900 hover:shadow-lg transition-shadow max-w-3/5">
+            <div v-for="db in dbStore.databases" :key="db.id" @click="setActiveDatabase(db.id)"
+                class="shadow p-4 rounded-tr-lg rounded-br-lg w-full border-l-6 border-violet-900 hover:shadow-lg transition-shadow md:max-w-3/5 bg-white cursor-pointer">
 
                 <div class="flex justify-between items-start mb-3 space-x-3 relative">
                     <div>
@@ -26,7 +27,7 @@
                     <div>
                         <p class="text-xs text-gray-500 uppercase tracking-wide">Last Modified</p>
                         <p class="font-medium text-gray-800">{{ db.db.manifest?.userDataBackup.lastModifiedDate || 'N/A'
-                        }}</p>
+                            }}</p>
                     </div>
                 </div>
             </div>
@@ -42,5 +43,10 @@
 
     const gotoImport = () => {
         router.push({ name: 'import' });
+    }
+
+    const setActiveDatabase = (dbId: string) => {
+        dbStore.setActiveDatabase(dbId);
+        router.push({ name: 'database-notes' });
     }
 </script>

@@ -1,17 +1,27 @@
-import type { Note } from "@/database/types/note";
+
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import { useDatabaseStore } from "./database";
+import type { Note } from "@/database/types/note";
 
 export const useNotesStore = defineStore("notes", () => {
 
     interface NotesState {
         db_id: string;
-        notes: Note[];
+        notes: Note[]
     }
+
+    const dbStore = useDatabaseStore();
 
     const notes = ref<NotesState[]>([])
 
+    const activeDatabaseNotes = computed(() => {
+        const activeDbId = dbStore.activeDatabaseId;
+        return notes.value.find(n => n.db_id === activeDbId)?.notes || [];
+    })
+
     return {
-        notes
+        notes,
+        activeDatabaseNotes
     }
 })

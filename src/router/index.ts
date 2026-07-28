@@ -18,6 +18,11 @@ const router = createRouter({
       path: "/databases",
       component: () => import("../views/DatabasesList.vue"),
     },
+    {
+      name: "database-notes",
+      path: "/notes",
+      component: () => import("../views/DatabaseNotes.vue"),
+    }
   ],
 })
 
