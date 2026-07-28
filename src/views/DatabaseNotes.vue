@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 bg-gray-50 min-h-screen">
+    <div class="p-2 md:p-6 bg-gray-50 min-h-screen">
         <div v-for="note in notesStore.activeDatabaseNotes" :key="note[0]" class="p-4 m-2 bg-white shadow rounded ">
             <h3 class="font-semibold text-gray-800">{{ note[4] }}</h3>
             <p class="text-gray-600" v-html="formatText(note[5])"></p>
