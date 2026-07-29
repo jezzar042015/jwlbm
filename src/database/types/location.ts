@@ -5,40 +5,17 @@ export enum LocationType {
     Unknown3 = 3,
 }
 
-export interface Location {
-    /** Primary key */
-    locationId: number
-
-    /** Bible book number */
-    bookNumber: number | null
-
-    /** Bible chapter number */
-    chapterNumber: number | null
-
-    /** Publication document identifier */
-    documentId: number | null
-
-    /** Media/audio track number */
-    track: number | null
-
-    /** Issue tag number */
-    issueTagNumber: number
-
-    /** Publication key symbol (e.g. lff, nwt, w, wp) */
-    keySymbol: string | null
-
-    /** MEPS language identifier */
-    mepsLanguage: number | null
-
-    /** Location type */
-    type: LocationType
-
-    /** Display title */
-    title: string | null
-
-    /** Specialty information */
-    specialty: string | null
-
-    /** Edition information */
-    edition: string | null
-}
+export type Location = [
+    locationId: number,
+    bookNumber: number | null,
+    chapterNumber: number | null,
+    documentId: number | null,
+    track: number | null,
+    issueTagNumber: number,
+    keySymbol: string | null,
+    mepsLanguage: number | null,
+    type: LocationType,
+    title: string | null,
+    specialty: string | null,
+    edition: string | null,
+]

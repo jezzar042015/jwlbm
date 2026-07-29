@@ -1,5 +1,8 @@
 <template>
     <div class="p-4 m-2 shadow rounded " :class="bg">
+        <p v-if="item.note[6]" class="text-xs text-gray-500 mb-2">
+            {{ formatRelativeTime(item.note[6]) }}
+        </p>
         <h3 class="font-semibold text-gray-800">{{ item.note[4] }}</h3>
         <p class="text-gray-600" v-html="formatText(item.note[5])"></p>
         <div v-if="item.tagMaps.length > 0">
@@ -16,6 +19,7 @@
     import type { Note } from '@/database/types/note';
     import type { NoteTagMapRow } from '@/database/types/tagMap';
     import { useTagsStore } from '@/stores/tags';
+    import { useRelativeTime } from '@/composables/useRelativeTime';
     import { computed } from 'vue';
 
     const { item } = defineProps<{
@@ -27,6 +31,7 @@
     }>();
 
     const tagStore = useTagsStore();
+    const { formatRelativeTime } = useRelativeTime();
 
     function escapeHtml(unsafe: string) {
         return unsafe

@@ -40,7 +40,7 @@
                         <div class="text-sm text-gray-500">or click to browse</div>
                         <div v-if="fileName" class="text-sm text-gray-700">Selected: <span class="font-semibold">{{
                             fileName
-                        }}</span></div>
+                                }}</span></div>
 
                     </div>
                 </div>
@@ -48,7 +48,7 @@
                 <div class="pt-2 flex items-center justify-center w-full " v-if="dbStore.databases.length > 0">
                     <button @click.stop="gotoDatabases"
                         class="bg-violet-900 text-white px-8 py-3 rounded-full shadow cursor-pointer">
-                        Go to Databases
+                        Go to Loaded Backup Files
                     </button>
                 </div>
             </div>

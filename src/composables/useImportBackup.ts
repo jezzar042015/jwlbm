@@ -13,10 +13,23 @@ import { useNotesStore } from "@/stores/notes";
 import { useTagsStore } from "@/stores/tags";
 import { useUserMarksStore } from "@/stores/userMarks";
 
-export function attachTagMapsToNotes(notes: Note[], tagMaps: NoteTagMapRow[], userMarks: UserMark[] = []) {
-    return notes.map((note) => {
-        const noteId = note[0];
-        const noteUserMarkId = note[2];
+export async function attachTagMapsToNotes(
+    notes: Note[],
+    tagMaps: NoteTagMapRow[],
+    userMarks: UserMark[] = [],
+    onProgress?: (progress: number) => Promise<void>
+) {
+    const total = notes.length;
+    const attached = [] as Array<{
+        note: Note;
+        tagMaps: NoteTagMapRow[];
+        marker?: UserMark;
+    }>;
+
+    for (let index = 0; index < total; index += 1) {
+        const note = notes[index];
+        const noteId = note?.[0];
+        const noteUserMarkId = note?.[2];
         const relatedTagMaps = tagMaps.filter((tagMap) => {
             return tagMap[3] === noteId;
         });
@@ -24,12 +37,20 @@ export function attachTagMapsToNotes(notes: Note[], tagMaps: NoteTagMapRow[], us
             ? userMarks.find((userMark) => userMark[0] === noteUserMarkId)
             : undefined;
 
-        return {
-            note,
-            tagMaps: relatedTagMaps,
-            marker,
-        };
-    });
+        if (note) {
+            attached.push({
+                note,
+                tagMaps: relatedTagMaps,
+                marker,
+            });
+        }
+
+        if (onProgress && (index % 10 === 0 || index === total - 1)) {
+            await onProgress((index + 1) / total);
+        }
+    }
+
+    return attached;
 }
 
 export function useImportBackup() {
@@ -40,11 +61,11 @@ export function useImportBackup() {
     const tagsStore = useTagsStore();
     const userMarksStore = useUserMarksStore();
 
-    async function importBackup(file: File, onProgress?: (p: number, msg?: string) => void) {
+    async function importBackup(file: File, onProgress?: (p: number, msg?: string, mapProgress?: number) => void) {
         loading.value = true;
 
-        const report = async (p: number, msg?: string) => {
-            onProgress?.(p, msg);
+        const report = async (p: number, msg?: string, mapProgress?: number) => {
+            onProgress?.(p, msg, mapProgress);
             // yield to the event loop so the UI can repaint between heavy steps
             await new Promise((r) => setTimeout(r, 0));
         };
@@ -76,7 +97,7 @@ export function useImportBackup() {
             await grabTags(db, instance.id);
             await report(90, 'Loaded tags');
 
-            await grabTagMaps(db, instance.id);
+            await grabTagMaps(db, instance.id, report);
             await report(100, 'Import complete');
         } catch (err) {
             await report(100, 'Import failed');
@@ -115,7 +136,9 @@ export function useImportBackup() {
         });
     }
 
-    async function grabTagMaps(db: DatabaseService, id: string) {
+    async function grabTagMaps(db: DatabaseService, id: string, report: (p: number, msg?: string, mapProgress?: number) => Promise<void>) {
+        await report(92, 'Loading tag maps...');
+
         const tagMapService = new TagMapService(db);
         const tagMaps = tagMapService.getAll();
         tagsStore.tagMaps.push({
@@ -123,13 +146,18 @@ export function useImportBackup() {
             db_id: id
         });
 
+        await report(95, 'Attaching tag maps to notes...');
+
         const notesForDb = notesStore.notes.find((entry) => entry.db_id === id);
         const userMarksForDb = userMarksStore.markers.find((entry) => entry.db_id === id);
         if (notesForDb) {
-            const attachedNotes = attachTagMapsToNotes(
+            const attachedNotes = await attachTagMapsToNotes(
                 notesForDb.notes,
                 tagMaps as NoteTagMapRow[],
-                userMarksForDb?.userMarks ?? []
+                userMarksForDb?.userMarks ?? [],
+                async (mapProgress) => {
+                    await report(95 + mapProgress * 3, 'Attaching tag maps to notes...', mapProgress);
+                }
             );
             notesStore.notes = notesStore.notes.map((entry) => {
                 if (entry.db_id !== id) return entry;
@@ -140,6 +168,8 @@ export function useImportBackup() {
                 } as typeof entry & { notesWithTagMaps: typeof attachedNotes };
             });
         }
+
+        await report(98, 'Tag maps attached');
     }
 
     return {
