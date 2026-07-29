@@ -12,11 +12,11 @@ export enum UserMarkStyle {
     // Add other styles as they become known
 }
 
-export interface UserMark {
-    userMarkId: number
-    colorIndex: UserMarkColor
-    locationId: number
-    styleIndex: UserMarkStyle
-    userMarkGuid: string
+export type UserMark = [
+    userMarkId: number,
+    colorIndex: UserMarkColor,
+    locationId: number,
+    styleIndex: UserMarkStyle,
+    userMarkGuid: string,
     version: number
-}
+]

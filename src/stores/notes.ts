@@ -4,6 +4,7 @@ import { computed, ref } from "vue";
 import { useDatabaseStore } from "./database";
 import type { Note } from "@/database/types/note";
 import type { NoteTagMapRow } from "@/database/types/tagMap";
+import type { UserMark } from "@/database/types/marker";
 
 export const useNotesStore = defineStore("notes", () => {
 
@@ -12,7 +13,8 @@ export const useNotesStore = defineStore("notes", () => {
         notes: Note[];
         notesWithTagMaps?: {
             note: Note,
-            tagMaps: NoteTagMapRow[]
+            tagMaps: NoteTagMapRow[],
+            marker?: UserMark
         }[];
     }
 

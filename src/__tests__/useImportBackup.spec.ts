@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { attachTagMapsToNotes } from "../composables/useImportBackup";
+import type { UserMark } from "../database/types/marker";
 import type { Note } from "../database/types/note";
-import type { NoteTagMap, NoteTagMapRow } from "../database/types/tagMap";
+import type { NoteTagMapRow } from "../database/types/tagMap";
 
 describe("attachTagMapsToNotes", () => {
     it("attaches tag maps to the matching note by noteId", () => {
@@ -38,5 +39,37 @@ describe("attachTagMapsToNotes", () => {
             note: notes[0],
             tagMaps,
         });
+    });
+
+    it("attaches the matching user mark when note[2] points to a user mark id", () => {
+        const notes: Note[] = [
+            [
+                7,
+                "guid-1",
+                42,
+                null,
+                "First note",
+                "Body",
+                "2024-01-01",
+                "2024-01-01",
+                0,
+                null,
+            ],
+        ];
+
+        const userMarks: UserMark[] = [
+            [
+                42,
+                0,
+                1,
+                0,
+                "mark-guid",
+                1,
+            ],
+        ];
+
+        const result = attachTagMapsToNotes(notes, [], userMarks);
+
+        expect(result[0]?.marker).toEqual(userMarks[0]);
     });
 });
