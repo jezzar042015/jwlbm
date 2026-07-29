@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { attachTagMapsToNotes } from "../composables/useImportBackup";
 import type { Note } from "../database/types/note";
-import type { NoteTagMap } from "../database/types/tagMap";
+import type { NoteTagMap, NoteTagMapRow } from "../database/types/tagMap";
 
 describe("attachTagMapsToNotes", () => {
     it("attaches tag maps to the matching note by noteId", () => {
@@ -20,15 +20,15 @@ describe("attachTagMapsToNotes", () => {
             ],
         ];
 
-        const tagMaps: NoteTagMap[] = [
-            {
-                tagMapId: 1,
-                tagId: 10,
-                position: 0,
-                playlistItemId: null,
-                locationId: null,
-                noteId: 7,
-            },
+        const tagMaps: NoteTagMapRow[] = [
+            [
+                1,
+                null,
+                null,
+                7,
+                10,
+                0,
+            ]
         ];
 
         const result = attachTagMapsToNotes(notes, tagMaps);
