@@ -1,13 +1,22 @@
 <template>
     <div class="p-2 md:p-6 bg-gray-50 min-h-screen">
-        <div v-for="note in notesStore.activeDatabaseNotes" :key="note[0]" class="p-4 m-2 bg-white shadow rounded ">
-            <h3 class="font-semibold text-gray-800">{{ note[4] }}</h3>
-            <p class="text-gray-600" v-html="formatText(note[5])"></p>
+        <div v-if="notesStore.activeDatabaseNotes.length === 0" class="text-gray-500 text-center mt-10">
+            <p class="mb-8">No database or notes available for this database.</p>
+
+            <button @click="gotoImport" class="bg-violet-900 text-white px-8 py-3 rounded-full shadow cursor-pointer">
+                Add Database
+            </button>
         </div>
+        <template v-else v-for="item in notesStore.activeDatabaseNotes" :key="item.note[0]">
+            <NoteListItem :item="item" />
+        </template>
+
     </div>
 </template>
 
 <script setup lang="ts">
+    import NoteListItem from '@/components/notes/NoteListItem.vue';
+    import router from '@/router';
     import { useNotesStore } from '@/stores/notes';
 
     const notesStore = useNotesStore();
@@ -26,5 +35,9 @@
         // preserve existing HTML safety and convert newlines to <br>
         const escaped = escapeHtml(text);
         return escaped.replace(/\r\n|\r|\n/g, '<br>');
+    }
+
+    const gotoImport = () => {
+        router.push({ name: 'import' });
     }
 </script>

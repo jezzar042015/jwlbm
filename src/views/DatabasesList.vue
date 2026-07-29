@@ -4,7 +4,7 @@
             <button @click="gotoImport" class="shadow uppercase text-xs px-4 py-2 bg-white rounded-full">Add
                 Database</button>
         </div>
-        <div class="p-2 md:px-5 py-2 space-y-4 flex flex-col">
+        <div class="p-2 md:px-5 py-2 space-y-4 flex flex-col my-auto">
             <div v-for="db in dbStore.databases" :key="db.id" @click="setActiveDatabase(db.id)"
                 class="shadow p-4 rounded-tr-lg rounded-br-lg w-full border-l-6 border-violet-900 hover:shadow-lg transition-shadow md:max-w-3/5 bg-white cursor-pointer">
 
@@ -27,7 +27,7 @@
                     <div>
                         <p class="text-xs text-gray-500 uppercase tracking-wide">Last Modified</p>
                         <p class="font-medium text-gray-800">{{ db.db.manifest?.userDataBackup.lastModifiedDate || 'N/A'
-                        }}</p>
+                            }}</p>
                     </div>
                 </div>
             </div>

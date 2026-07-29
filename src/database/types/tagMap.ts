@@ -4,6 +4,15 @@ interface BaseTagMap {
     position: number
 }
 
+export type NoteTagMapRow = [
+    tagMapId: number,
+    playlistItemId: null,
+    locationId: null,
+    noteId: number,
+    tagId: number,
+    position: number,
+]
+
 export interface PlaylistItemTagMap extends BaseTagMap {
     playlistItemId: number
     locationId: null

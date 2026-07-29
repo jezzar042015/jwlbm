@@ -5,13 +5,8 @@ export enum TagType {
     Unknown2 = 2,
 }
 
-export interface Tag {
-    /** Primary key */
-    tagId: number
-
-    /** Tag category */
-    type: TagType
-
-    /** Tag name */
-    name: string
-}
+export type Tag = [
+    tagId: number,
+    type: TagType,
+    name: string,
+]
