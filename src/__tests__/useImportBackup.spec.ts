@@ -5,7 +5,7 @@ import type { Note } from "../database/types/note";
 import type { NoteTagMapRow } from "../database/types/tagMap";
 
 describe("attachTagMapsToNotes", () => {
-    it("attaches tag maps to the matching note by noteId", () => {
+    it("attaches tag maps to the matching note by noteId", async () => {
         const notes: Note[] = [
             [
                 7,
@@ -32,7 +32,7 @@ describe("attachTagMapsToNotes", () => {
             ]
         ];
 
-        const result = attachTagMapsToNotes(notes, tagMaps);
+        const result = await attachTagMapsToNotes(notes, tagMaps);
 
         expect(result).toHaveLength(1);
         expect(result[0]).toMatchObject({
@@ -41,7 +41,7 @@ describe("attachTagMapsToNotes", () => {
         });
     });
 
-    it("attaches the matching user mark when note[2] points to a user mark id", () => {
+    it("attaches the matching user mark when note[2] points to a user mark id", async () => {
         const notes: Note[] = [
             [
                 7,
@@ -68,7 +68,7 @@ describe("attachTagMapsToNotes", () => {
             ],
         ];
 
-        const result = attachTagMapsToNotes(notes, [], userMarks);
+        const result = await attachTagMapsToNotes(notes, [], userMarks);
 
         expect(result[0]?.marker).toEqual(userMarks[0]);
     });
