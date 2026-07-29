@@ -61,22 +61,6 @@
         });
     });
 
-    function escapeHtml(unsafe: string) {
-        return unsafe
-            .replaceAll("&", '&amp;')
-            .replaceAll("<", '&lt;')
-            .replaceAll(">", '&gt;')
-            .replaceAll('"', '&quot;')
-            .replaceAll("'", '&#039;');
-    }
-
-    function formatText(text: string | null | undefined) {
-        if (!text) return '';
-        // preserve existing HTML safety and convert newlines to <br>
-        const escaped = escapeHtml(text);
-        return escaped.replace(/\r\n|\r|\n/g, '<br>');
-    }
-
     const gotoImport = () => {
         router.push({ name: 'import' });
     }
