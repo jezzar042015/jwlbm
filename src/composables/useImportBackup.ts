@@ -40,26 +40,50 @@ export function useImportBackup() {
     const tagsStore = useTagsStore();
     const userMarksStore = useUserMarksStore();
 
-    async function importBackup(file: File) {
+    async function importBackup(file: File, onProgress?: (p: number, msg?: string) => void) {
         loading.value = true;
 
-        const db = await ImportService.importBackup(file);
+        const report = async (p: number, msg?: string) => {
+            onProgress?.(p, msg);
+            // yield to the event loop so the UI can repaint between heavy steps
+            await new Promise((r) => setTimeout(r, 0));
+        };
 
-        const instance = {
-            id: crypto.randomUUID(),
-            name: file.name,
-            importedAt: new Date(),
-            isMaster: false,
-            db,
+        await report(0, 'Starting import...');
+
+        try {
+            await report(5, 'Extracting backup...');
+            const db = await ImportService.importBackup(file);
+            await report(40, 'Database opened');
+
+            const instance = {
+                id: crypto.randomUUID(),
+                name: file.name,
+                importedAt: new Date(),
+                isMaster: false,
+                db,
+            }
+
+            store.addDatabase(instance);
+            await report(50, 'Registered database');
+
+            await grabNotes(db, instance.id);
+            await report(65, 'Loaded notes');
+
+            await grabUserMarks(db, instance.id);
+            await report(80, 'Loaded user marks');
+
+            await grabTags(db, instance.id);
+            await report(90, 'Loaded tags');
+
+            await grabTagMaps(db, instance.id);
+            await report(100, 'Import complete');
+        } catch (err) {
+            await report(100, 'Import failed');
+            throw err;
+        } finally {
+            loading.value = false;
         }
-
-        store.addDatabase(instance);
-        await grabNotes(db, instance.id);
-        await grabUserMarks(db, instance.id);
-        await grabTags(db, instance.id);
-        await grabTagMaps(db, instance.id);
-
-        loading.value = false;
     }
 
     async function grabNotes(db: DatabaseService, id: string) {

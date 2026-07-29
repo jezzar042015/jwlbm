@@ -57,7 +57,7 @@
         } else if (item.marker?.[1] === 1) {
             return 'bg-yellow-50';
         } else if (item.marker?.[1] === 2) {
-            return 'bg-green-100';
+            return 'bg-green-50';
         } else if (item.marker?.[1] === 3) {
             return 'bg-blue-100';
         } else if (item.marker?.[1] === 4) {
