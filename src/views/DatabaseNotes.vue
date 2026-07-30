@@ -1,5 +1,5 @@
 <template>
-    <div class="p-0 bg-gray-50 min-h-screen">
+    <div class="p-0 bg-gray-50 h-screen overflow-hidden">
         <div v-if="notesStore.activeDatabaseNotes.length === 0" class="text-gray-500 text-center mt-10">
             <p class="mb-8">No database or notes available for this database.</p>
 
@@ -8,20 +8,22 @@
             </button>
         </div>
 
-        <div v-else class="space-y-4">
-            <div class="flex justify-end px-2 md:p-6">
+        <div v-else class="flex justify-end flex-col h-screen overflow-hidden">
+            <div class="flex px-2 py-2 md:px-4 h-fit shadow-md">
                 <label for="note-search" class="sr-only">Search notes</label>
                 <input id="note-search" v-model="searchTerm" type="search" placeholder="Search notes"
-                    class="w-full md:w-80 rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
+                    class="w-2/3 md:w-80 rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
             </div>
 
             <div v-if="filteredNotes.length === 0" class="text-center text-gray-500 py-8">
                 No notes match your search.
             </div>
 
-            <template v-else v-for="item in filteredNotes" :key="item.note[0]">
-                <NoteListItem :item="item" />
-            </template>
+            <div v-else class="flex-1 overflow-y-auto">
+                <template v-for="item in filteredNotes" :key="item.note[0]">
+                    <NoteListItem :item="item" />
+                </template>
+            </div>
         </div>
     </div>
 </template>
