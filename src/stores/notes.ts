@@ -1,34 +1,92 @@
-
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useDatabaseStore } from "./database";
+
 import type { Note } from "@/database/types/note";
 import type { NoteTagMapRow } from "@/database/types/tagMap";
 import type { UserMark } from "@/database/types/marker";
 
 export const useNotesStore = defineStore("notes", () => {
+    interface NoteWithTagMap {
+        note: Note;
+        tagMaps: NoteTagMapRow[];
+        marker?: UserMark;
+    }
 
     interface NotesState {
         db_id: string;
         notes: Note[];
-        notesWithTagMaps?: {
-            note: Note,
-            tagMaps: NoteTagMapRow[],
-            marker?: UserMark
-        }[];
+        notesWithTagMaps?: NoteWithTagMap[];
+    }
+
+    interface ConflictingNotesState {
+        db_id: string;
+        notes: NoteWithTagMap[];
     }
 
     const dbStore = useDatabaseStore();
 
-    const notes = ref<NotesState[]>([])
+    const notes = ref<NotesState[]>([]);
 
-    const activeDatabaseNotes = computed(() => {
-        const activeDbId = dbStore.activeDatabaseId;
-        return notes.value.find(n => n.db_id === activeDbId)?.notesWithTagMaps || [];
-    })
+    /**
+     * Creates a comparison key for a note.
+     * IDs are intentionally ignored because each database
+     * generates its own auto-incrementing IDs.
+     */
+    const getNoteKey = (note: Note): string => {
+        const title = note[4] ?? "";
+        const content = note[5] ?? "";
+
+        return `${title}\u0000${content}`;
+    };
+
+    const activeDatabaseNotes = computed<NoteWithTagMap[]>(() => {
+        return (
+            notes.value.find(
+                state => state.db_id === dbStore.activeDatabaseId
+            )?.notesWithTagMaps ?? []
+        );
+    });
+
+    /**
+     * Returns notes from non-master databases that do not already
+     * exist in the master database.
+     *
+     * Equality is determined by title + content.
+     * The original note IDs are ignored because they are local
+     * to each database and will be regenerated during import.
+     */
+    const conflictingNoteStates = computed<ConflictingNotesState[]>(() => {
+        const masterDatabase = dbStore.databases.find(db => db.isMaster);
+
+        if (!masterDatabase) {
+            return [];
+        }
+
+        const masterState = notes.value.find(
+            state => state.db_id === masterDatabase.id
+        );
+
+        const masterNotes = masterState?.notesWithTagMaps ?? [];
+
+        const masterNoteKeys = new Set(
+            masterNotes.map(({ note }) => getNoteKey(note))
+        );
+
+        return notes.value
+            .filter(state => state.db_id !== masterDatabase.id)
+            .map<ConflictingNotesState>(state => ({
+                db_id: state.db_id,
+                notes: (state.notesWithTagMaps ?? []).filter(({ note }) => {
+                    return !masterNoteKeys.has(getNoteKey(note));
+                }),
+            }))
+            .filter(state => state.notes.length > 0);
+    });
 
     return {
         notes,
-        activeDatabaseNotes
-    }
-})
+        activeDatabaseNotes,
+        conflictingNoteStates,
+    };
+});

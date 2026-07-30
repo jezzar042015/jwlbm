@@ -1,5 +1,5 @@
 <template>
-    <div class="p-2 md:p-6 bg-gray-50 min-h-screen">
+    <div class="p-0 bg-gray-50 min-h-screen">
         <div v-if="notesStore.activeDatabaseNotes.length === 0" class="text-gray-500 text-center mt-10">
             <p class="mb-8">No database or notes available for this database.</p>
 
@@ -7,8 +7,9 @@
                 Add Backup File
             </button>
         </div>
+
         <div v-else class="space-y-4">
-            <div class="flex justify-end px-2">
+            <div class="flex justify-end px-2 md:p-6">
                 <label for="note-search" class="sr-only">Search notes</label>
                 <input id="note-search" v-model="searchTerm" type="search" placeholder="Search notes"
                     class="w-full md:w-80 rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
