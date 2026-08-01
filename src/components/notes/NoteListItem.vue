@@ -7,7 +7,8 @@
         <p class="text-gray-600" v-html="formatText(item.note[5])"></p>
         <div v-if="normalizedTagMaps.length > 0">
             <span v-for="tag in tags" :key="tag.id" @click="handleTagClick(tag.id)"
-                class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-2 mt-2 shadow-xs">
+                class="inline-block text-xs px-2 py-1 rounded-full mr-2 mt-2 shadow-xs"
+                :class="filterTags.includes(tag.id) ? 'bg-black text-white' : 'bg-gray-100 text-gray-800'">
                 {{ tag.label }}
             </span>
         </div>
@@ -22,12 +23,13 @@
     import { useRelativeTime } from '@/composables/useRelativeTime';
     import { computed } from 'vue';
 
-    const { item } = defineProps<{
+    const { item, filterTags } = defineProps<{
         item: {
             note: Note,
             tagMaps: NoteTagMapRow[],
             marker?: UserMark
-        }
+        },
+        filterTags: number[]
     }>();
 
     const emit = defineEmits<{

@@ -21,6 +21,16 @@
                         {{ tag.label }}
                     </button>
                 </div>
+
+                <div
+                    class="flex md:hidden *:flex-wrap ml-4 shadow-xs py-1 px-4 rounded-full text-xs items-center  bg-violet-800 text-white">
+                    <div v-if="filterTagLabels.length > 0" class="flex flex-1 cursor-pointer">
+                        {{ filterTagLabels.length }} tag(s) selected
+                    </div>
+                    <div v-else class="flex flex-1 cursor-pointer">
+                        No tags selected
+                    </div>
+                </div>
             </div>
 
             <div v-if="filteredNotes.length === 0" class="text-center text-gray-500 py-8">
@@ -29,7 +39,7 @@
 
             <div v-else class="flex-1 overflow-y-auto">
                 <template v-for="item in filteredNotes" :key="item.note[0]">
-                    <NoteListItem :item="item" @handle-tag-filter-change="handleTagFilterChange" />
+                    <NoteListItem :item="item" @handle-tag-filter-change="handleTagFilterChange" :filter-tags />
                 </template>
             </div>
         </div>
