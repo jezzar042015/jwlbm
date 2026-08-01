@@ -6,7 +6,7 @@
             </button>
         </div>
         <div class="p-2 md:px-5 py-2 space-y-4 flex flex-col items-center w-full flex-1">
-            <div v-for="db in dbStore.databases" :key="db.id" @click="setActiveDatabase(db.id)"
+            <!-- <div v-for="db in dbStore.databases" :key="db.id" @click="setActiveDatabase(db.id)"
                 class="shadow p-4 rounded-tr-lg rounded-br-lg w-full max-w-full md:max-w-3xl border-l-6 border-violet-900 hover:shadow-lg transition-shadow bg-white cursor-pointer mx-auto">
 
                 <div class="flex justify-between items-start mb-3 space-x-3 relative">
@@ -33,7 +33,18 @@
                         </p>
                     </div>
                 </div>
-            </div>
+                <div v-if="!db.isMaster" class="mt-4">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wide">Not in Primary Backup</p>
+                        <p class="font-medium text-gray-800">{{ "" }}
+                        </p>
+                    </div>
+                </div>
+            </div> -->
+
+            <template v-for="db in dbStore.databases" :key="db.id">
+                <DatabaseListItem :db="db" @set-active-database="setActiveDatabase" />
+            </template>
         </div>
     </div>
 </template>
@@ -42,6 +53,7 @@
     import router from '@/router';
     import { useDatabaseStore } from '@/stores/database';
     import { useRelativeTime } from '@/composables/useRelativeTime';
+    import DatabaseListItem from '@/components/databases/DatabaseListItem.vue';
 
     const dbStore = useDatabaseStore();
     const { formatRelativeTime } = useRelativeTime();

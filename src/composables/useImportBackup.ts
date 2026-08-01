@@ -12,6 +12,8 @@ import { useDatabaseStore } from "@/stores/database";
 import { useNotesStore } from "@/stores/notes";
 import { useTagsStore } from "@/stores/tags";
 import { useUserMarksStore } from "@/stores/userMarks";
+import { LocationService } from "@/services/LocationService";
+import { useLocationsStore } from "@/stores/locations";
 
 export async function attachTagMapsToNotes(
     notes: Note[],
@@ -60,6 +62,7 @@ export function useImportBackup() {
     const notesStore = useNotesStore();
     const tagsStore = useTagsStore();
     const userMarksStore = useUserMarksStore();
+    const locationsStore = useLocationsStore();
 
     async function importBackup(file: File, onProgress?: (p: number, msg?: string, mapProgress?: number) => void) {
         loading.value = true;
@@ -87,6 +90,9 @@ export function useImportBackup() {
 
             store.addDatabase(instance);
             await report(50, 'Registered database');
+
+            await grabLocations(db, instance.id);
+            await report(60, 'Loaded locations');
 
             await grabNotes(db, instance.id);
             await report(65, 'Loaded notes');
@@ -136,6 +142,16 @@ export function useImportBackup() {
         });
     }
 
+    async function grabLocations(db: DatabaseService, id: string) {
+        const locationsService = new LocationService(db);
+        const locations = locationsService.getAll();
+
+        locationsStore.locations.push({
+            locations,
+            db_id: id
+        })
+    }
+
     async function grabTagMaps(db: DatabaseService, id: string, report: (p: number, msg?: string, mapProgress?: number) => Promise<void>) {
         await report(92, 'Loading tag maps...');
 
@@ -151,10 +167,13 @@ export function useImportBackup() {
         const notesForDb = notesStore.notes.find((entry) => entry.db_id === id);
         const userMarksForDb = userMarksStore.markers.find((entry) => entry.db_id === id);
         if (notesForDb) {
+            // Create a Map for O(1) lookups instead of filtering/finding
+            const userMarksMap = new Map((userMarksForDb?.userMarks ?? []).map((um) => [um[0], um]));
+
             const attachedNotes = await attachTagMapsToNotes(
                 notesForDb.notes,
                 tagMaps as NoteTagMapRow[],
-                userMarksForDb?.userMarks ?? [],
+                Array.from(userMarksMap.values()),
                 async (mapProgress) => {
                     await report(95 + mapProgress * 3, 'Attaching tag maps to notes...', mapProgress);
                 }

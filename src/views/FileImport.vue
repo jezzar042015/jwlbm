@@ -9,9 +9,12 @@
                 </div>
 
                 <!-- Progress Bar -->
-                <div class="w-full bg-gray-200 rounded-full h-2">
+                <!-- <div class="w-full bg-gray-200 rounded-full h-2">
                     <div class="bg-violet-900 h-2 rounded-full transition-all duration-300"
                         :style="{ width: `${progress}%` }"></div>
+                </div> -->
+                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="progress-fill h-full rounded-full" :style="{ width: `${progress}%` }"></div>
                 </div>
 
                 <!-- Progress Percentage -->
@@ -125,3 +128,33 @@
         router.push({ name: 'databases' });
     };
 </script>
+
+<style scoped>
+    .progress-fill
+    {
+        background: linear-gradient(90deg,
+                #4c1d95 0%,
+                #7c3aed 25%,
+                #c4b5fd 50%,
+                #7c3aed 75%,
+                #4c1d95 100%);
+
+        background-size: 300% 100%;
+        animation: progress-gradient 2s linear infinite;
+
+        transition: width 300ms ease;
+    }
+
+    @keyframes progress-gradient
+    {
+        0%
+        {
+            background-position: 300% 0;
+        }
+
+        100%
+        {
+            background-position: 0% 0;
+        }
+    }
+</style>

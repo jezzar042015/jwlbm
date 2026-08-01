@@ -106,4 +106,43 @@ describe('DatabaseNotes', () => {
         expect(wrapper.text()).toContain('Beta note');
         expect(wrapper.text()).not.toContain('Alpha note');
     });
+
+    it('filters notes by selected tag ids', async () => {
+        const databaseStore = useDatabaseStore();
+        const notesStore = useNotesStore();
+
+        databaseStore.activeDatabaseId = 'db-1';
+        notesStore.notes = [
+            {
+                db_id: 'db-1',
+                notesWithTagMaps: [
+                    {
+                        note: ['1', '', '', '', 'Alpha note', 'First content', '', ''],
+                        tagMaps: [[1, null, null, 1, 10, 0]],
+                    },
+                    {
+                        note: ['2', '', '', '', 'Beta note', 'Second content', '', ''],
+                        tagMaps: [[2, null, null, 2, 20, 0]],
+                    },
+                ],
+            },
+        ] as any;
+
+        const wrapper = mount(DatabaseNotes, {
+            global: {
+                stubs: {
+                    NoteListItem: {
+                        props: ['item'],
+                        template: '<div class="note-item">{{ item.note[4] }}</div>',
+                    },
+                },
+            },
+        });
+
+        (wrapper.vm as any).filterTags = [10];
+        await nextTick();
+
+        expect(wrapper.text()).toContain('Alpha note');
+        expect(wrapper.text()).not.toContain('Beta note');
+    });
 });

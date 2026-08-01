@@ -2,27 +2,10 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { useDatabaseStore } from "./database";
 
-import type { Note } from "@/database/types/note";
-import type { NoteTagMapRow } from "@/database/types/tagMap";
-import type { UserMark } from "@/database/types/marker";
+import type { ConflictingNotesState, Note, NotesState, NoteWithTagMap } from "@/database/types/note";
 
 export const useNotesStore = defineStore("notes", () => {
-    interface NoteWithTagMap {
-        note: Note;
-        tagMaps: NoteTagMapRow[];
-        marker?: UserMark;
-    }
 
-    interface NotesState {
-        db_id: string;
-        notes: Note[];
-        notesWithTagMaps?: NoteWithTagMap[];
-    }
-
-    interface ConflictingNotesState {
-        db_id: string;
-        notes: NoteWithTagMap[];
-    }
 
     const dbStore = useDatabaseStore();
 

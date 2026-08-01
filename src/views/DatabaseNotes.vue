@@ -9,10 +9,18 @@
         </div>
 
         <div v-else class="flex justify-end flex-col h-screen overflow-hidden">
-            <div class="flex px-2 py-2 md:px-4 h-fit shadow-md">
+            <div class="flex px-2 py-2 md:px-4 max-h-fit shadow-md">
                 <label for="note-search" class="sr-only">Search notes</label>
                 <input id="note-search" v-model="searchTerm" type="search" placeholder="Search notes"
                     class="w-2/3 md:w-80 rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
+
+                <div class="hidden md:flex items-center flex-wrap ml-4">
+                    <button v-for="tag in filterTagLabels" :key="tag.id" type="button"
+                        class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-2 mt-2 shadow-xs cursor-pointer"
+                        @click="handleTagFilterChange(tag.id)">
+                        {{ tag.label }}
+                    </button>
+                </div>
             </div>
 
             <div v-if="filteredNotes.length === 0" class="text-center text-gray-500 py-8">
@@ -21,7 +29,7 @@
 
             <div v-else class="flex-1 overflow-y-auto">
                 <template v-for="item in filteredNotes" :key="item.note[0]">
-                    <NoteListItem :item="item" />
+                    <NoteListItem :item="item" @handle-tag-filter-change="handleTagFilterChange" />
                 </template>
             </div>
         </div>
@@ -32,13 +40,25 @@
     import NoteListItem from '@/components/notes/NoteListItem.vue';
     import router from '@/router';
     import { useNotesStore } from '@/stores/notes';
+    import { useTagsStore } from '@/stores/tags';
     import { computed, ref, watch } from 'vue';
 
     const notesStore = useNotesStore();
+    const tagsStore = useTagsStore();
+
     const searchTerm = ref('');
     const debouncedSearchTerm = ref('');
+    const filterTags = ref<number[]>([]);
 
     let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const handleTagFilterChange = (selectedTagId: number) => {
+        if (filterTags.value.includes(selectedTagId)) {
+            filterTags.value = filterTags.value.filter(id => id !== selectedTagId);
+        } else {
+            filterTags.value.push(selectedTagId);
+        }
+    };
 
     watch(searchTerm, (value) => {
         if (debounceTimer) {
@@ -50,17 +70,30 @@
         }, 300);
     });
 
+    const filterTagLabels = computed(() => {
+        return filterTags.value.map((tagId) => ({
+            id: tagId,
+            label: tagsStore.activeDatabaseTags.find((tag) => tag[0] === tagId)?.[2] ?? String(tagId),
+        }));
+    });
+
     const filteredNotes = computed(() => {
         const keyword = debouncedSearchTerm.value;
-        if (!keyword) {
-            return notesStore.activeDatabaseNotes;
-        }
+        const selectedTagIds = Array.isArray(filterTags.value) ? filterTags.value : [];
+        const notes = Array.isArray(notesStore.activeDatabaseNotes) ? notesStore.activeDatabaseNotes : [];
 
-        return notesStore.activeDatabaseNotes.filter((item) => {
-            const title = item.note[4] ?? '';
-            const content = item.note[5] ?? '';
+        return notes.filter((item) => {
+            const title = typeof item?.note?.[4] === 'string' ? item.note[4] : '';
+            const content = typeof item?.note?.[5] === 'string' ? item.note[5] : '';
             const searchableText = `${title} ${content}`.toLowerCase();
-            return searchableText.includes(keyword);
+            const matchesKeyword = !keyword || searchableText.includes(keyword);
+
+            const tagMaps = Array.isArray(item?.tagMaps) ? item.tagMaps : [];
+            const matchesTags = selectedTagIds.length === 0 || selectedTagIds.every((selectedTagId) => {
+                return tagMaps.some((tagMap) => tagMap?.[4] === selectedTagId);
+            });
+
+            return matchesKeyword && matchesTags;
         });
     });
 

@@ -1,3 +1,7 @@
+import type { Location } from "./location";
+import type { UserMark } from "./marker";
+import type { NoteTagMapRow } from "./tagMap";
+
 export enum NoteBlockType {
     None = 0,
     Paragraph = 1,
@@ -17,3 +21,21 @@ export type Note = [
     blockType: NoteBlockType,
     blockIdentifier: number | null,
 ];
+
+export interface NoteWithTagMap {
+    note: Note;
+    tagMaps: NoteTagMapRow[];
+    marker?: UserMark;
+    location?: Location;
+}
+
+export interface NotesState {
+    db_id: string;
+    notes: Note[];
+    notesWithTagMaps?: NoteWithTagMap[];
+}
+
+export interface ConflictingNotesState {
+    db_id: string;
+    notes: NoteWithTagMap[];
+}

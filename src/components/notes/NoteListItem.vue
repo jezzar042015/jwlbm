@@ -1,12 +1,12 @@
 <template>
-    <div class="p-4 m-2 shadow rounded " :class="bg">
+    <div class="p-4 m-2 shadow rounded cursor-pointer" :class="bg">
         <p v-if="item.note[6]" class="text-xs text-gray-500 mb-2">
             {{ formatRelativeTime(item.note[6]) }}
         </p>
         <h3 class="font-semibold text-gray-800">{{ item.note[4] }}</h3>
         <p class="text-gray-600" v-html="formatText(item.note[5])"></p>
-        <div v-if="item.tagMaps.length > 0">
-            <span v-for="tag in tags" :key="tag.id"
+        <div v-if="normalizedTagMaps.length > 0">
+            <span v-for="tag in tags" :key="tag.id" @click="handleTagClick(tag.id)"
                 class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-2 mt-2 shadow-xs">
                 {{ tag.label }}
             </span>
@@ -30,6 +30,14 @@
         }
     }>();
 
+    const emit = defineEmits<{
+        (e: 'handle-tag-filter-change', selectedTagId: number): void;
+    }>();
+
+    const handleTagClick = (tagId: number) => {
+        emit('handle-tag-filter-change', tagId);
+    };
+
     const tagStore = useTagsStore();
     const { formatRelativeTime } = useRelativeTime();
 
@@ -49,11 +57,17 @@
         return escaped.replace(/\r\n|\r|\n/g, '<br>');
     }
 
+    const normalizedTagMaps = computed(() => {
+        return Array.isArray(item?.tagMaps) ? item.tagMaps : [];
+    });
+
     const tags = computed(() => {
-        return item.tagMaps.map(m => ({
-            id: m[4],
-            label: tagStore.activeDatabaseTags.find(f => f[0] == m[4])?.[2] ?? '',
-        }));
+        return normalizedTagMaps.value
+            .map((m) => ({
+                id: m[4],
+                label: tagStore.activeDatabaseTags.find(f => f[0] == m[4])?.[2] ?? '',
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
     });
 
     const bg = computed(() => {
