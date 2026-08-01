@@ -1,4 +1,5 @@
 import type { DatabaseService } from "@/services/DatabaseService";
+import type { Location } from "@/database/types/location";
 import type { Note } from "@/database/types/note";
 import type { NoteTagMapRow } from "@/database/types/tagMap";
 import type { UserMark } from "@/database/types/marker";
@@ -19,6 +20,7 @@ export async function attachTagMapsToNotes(
     notes: Note[],
     tagMaps: NoteTagMapRow[],
     userMarks: UserMark[] = [],
+    locations: Location[] = [],
     onProgress?: (progress: number) => Promise<void>
 ) {
     const total = notes.length;
@@ -26,17 +28,27 @@ export async function attachTagMapsToNotes(
         note: Note;
         tagMaps: NoteTagMapRow[];
         marker?: UserMark;
+        location?: Location;
     }>;
+
+    const locationMap = new Map(locations.map((location) => [location[0], location]));
+    const userMarksMap = new Map(userMarks.map((userMark) => [userMark[0], userMark]));
 
     for (let index = 0; index < total; index += 1) {
         const note = notes[index];
         const noteId = note?.[0];
         const noteUserMarkId = note?.[2];
+        const noteLocationId = note?.[3];
         const relatedTagMaps = tagMaps.filter((tagMap) => {
             return tagMap[3] === noteId;
         });
-        const marker = noteUserMarkId !== null
-            ? userMarks.find((userMark) => userMark[0] === noteUserMarkId)
+        const marker = noteUserMarkId != null
+            ? userMarksMap.get(noteUserMarkId)
+            : undefined;
+
+        const locationId = noteLocationId ?? (marker?.[2] ?? null);
+        const location = locationId !== null
+            ? locationMap.get(locationId)
             : undefined;
 
         if (note) {
@@ -44,6 +56,7 @@ export async function attachTagMapsToNotes(
                 note,
                 tagMaps: relatedTagMaps,
                 marker,
+                location,
             });
         }
 
@@ -126,6 +139,7 @@ export function useImportBackup() {
     async function grabTags(db: DatabaseService, id: string) {
         const tagsService = new TagService(db);
         const tags = tagsService.getAll();
+
         tagsStore.tags.push({
             tags,
             db_id: id
@@ -169,11 +183,13 @@ export function useImportBackup() {
         if (notesForDb) {
             // Create a Map for O(1) lookups instead of filtering/finding
             const userMarksMap = new Map((userMarksForDb?.userMarks ?? []).map((um) => [um[0], um]));
+            const locationsForDb = locationsStore.locations.find((entry) => entry.db_id === id)?.locations ?? [];
 
             const attachedNotes = await attachTagMapsToNotes(
                 notesForDb.notes,
                 tagMaps as NoteTagMapRow[],
                 Array.from(userMarksMap.values()),
+                locationsForDb,
                 async (mapProgress) => {
                     await report(95 + mapProgress * 3, 'Attaching tag maps to notes...', mapProgress);
                 }

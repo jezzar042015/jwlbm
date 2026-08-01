@@ -1,7 +1,7 @@
 <template>
     <div class="p-0 bg-gray-50 h-screen overflow-hidden">
         <div v-if="notesStore.activeDatabaseNotes.length === 0" class="text-gray-500 text-center mt-10">
-            <p class="mb-8">No database or notes available for this database.</p>
+            <p class="mx-4 mb-8 text-center">No database or notes available for this database.</p>
 
             <button @click="gotoImport" class="bg-violet-900 text-white px-8 py-3 rounded-full shadow cursor-pointer">
                 Add Backup File
@@ -12,7 +12,7 @@
             <div class="flex px-2 py-2 md:px-4 max-h-fit shadow-md">
                 <label for="note-search" class="sr-only">Search notes</label>
                 <input id="note-search" v-model="searchTerm" type="search" placeholder="Search notes"
-                    class="w-2/3 md:w-80 rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
+                    class="w-1/2 md:w-80 rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
 
                 <div class="hidden md:flex items-center flex-wrap ml-4">
                     <button v-for="tag in filterTagLabels" :key="tag.id" type="button"

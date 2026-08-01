@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import type { Location } from "@/database/types/location";
 
 export const useLocationsStore = defineStore("locations", () => {
     interface LocationsState {
