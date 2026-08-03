@@ -71,10 +71,12 @@
     import router from '@/router';
     import { useNotesStore } from '@/stores/notes';
     import { useTagsStore } from '@/stores/tags';
+    import { useDatabaseStore } from '@/stores/database';
     import { computed, ref, watch } from 'vue';
 
     const notesStore = useNotesStore();
     const tagsStore = useTagsStore();
+    const databaseStore = useDatabaseStore();
     const modal = ref<'' | 'tag-selector'>('')
 
     const searchTerm = ref('');
@@ -111,9 +113,13 @@
     const filteredNotes = computed(() => {
         const keyword = debouncedSearchTerm.value;
         const selectedTagIds = Array.isArray(filterTags.value) ? filterTags.value : [];
-        const notes = Array.isArray(notesStore.activeDatabaseNotes) ? notesStore.activeDatabaseNotes : [];
+        const notes = databaseStore.activeDatabase?.isMaster
+            ? notesStore.activeDatabaseNotes
+            : notesStore.activeDatabaseConflictingNotes;
 
-        return notes.filter((item) => {
+        const normalizedNotes = Array.isArray(notes) ? notes : [];
+
+        return normalizedNotes.filter((item) => {
             const title = typeof item?.note?.[4] === 'string' ? item.note[4] : '';
             const content = typeof item?.note?.[5] === 'string' ? item.note[5] : '';
             const searchableText = `${title} ${content}`.toLowerCase();

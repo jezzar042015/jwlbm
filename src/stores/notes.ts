@@ -67,9 +67,19 @@ export const useNotesStore = defineStore("notes", () => {
             .filter(state => state.notes.length > 0);
     });
 
+    const activeDatabaseConflictingNotes = computed<NoteWithTagMap[]>(() => {
+        const activeId = dbStore.activeDatabaseId;
+
+        return (
+            conflictingNoteStates.value.find(state => state.db_id === activeId)
+                ?.notes ?? []
+        );
+    });
+
     return {
         notes,
         activeDatabaseNotes,
+        activeDatabaseConflictingNotes,
         conflictingNoteStates,
     };
 });

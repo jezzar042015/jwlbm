@@ -1,6 +1,7 @@
 <template>
     <div @click="setActiveDatabase(db.id)"
-        class="shadow p-4 rounded-tr-lg rounded-br-lg w-full max-w-full md:max-w-3xl border-l-6 border-violet-900 hover:shadow-lg transition-shadow bg-white cursor-pointer mx-auto">
+        class="shadow p-4 rounded-tr-lg rounded-br-lg w-full max-w-full md:max-w-3xl border-l-6  hover:shadow-lg transition-shadow bg-white cursor-pointer mx-auto"
+        :class="{ 'border-violet-200': !db.isMaster, 'border-violet-900': db.isMaster }">
 
         <div class="flex justify-between items-start mb-3 space-x-3 relative">
             <div>
@@ -29,7 +30,7 @@
         <div v-if="!db.isMaster" class="mt-4">
             <div>
                 <p class="text-xs text-gray-500 uppercase tracking-wide">Not in Primary Backup</p>
-                <p class="font-medium text-gray-800">{{ "" }}
+                <p class="font-medium text-gray-800">{{ missingNotes.length }} notes
                 </p>
             </div>
         </div>
@@ -39,6 +40,7 @@
 <script setup lang="ts">
     import { useRelativeTime } from '@/composables/useRelativeTime';
     import type { DatabaseManifest } from '@/database/types/database';
+    import { useNotesStore } from '@/stores/notes';
     import { computed } from 'vue';
 
     const { db } = defineProps<{
@@ -78,10 +80,14 @@
         emits('set-active-database', dbId);
     }
 
+    const notes = useNotesStore();
+
     const missingNotes = computed(() => {
-        if (!db.isMaster) {
-            return true;
+        if (db.isMaster) {
+            return [];
         }
-        return false;
+        const dbNotes = notes.conflictingNoteStates.find(note => note.db_id === db.id);
+
+        return dbNotes ? dbNotes.notes : [];
     });
 </script>
