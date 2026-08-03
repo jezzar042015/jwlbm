@@ -1,5 +1,5 @@
 <template>
-    <div class="p-0 bg-gray-50 h-screen overflow-hidden">
+    <div class="relative p-0 bg-gray-50 h-screen overflow-hidden">
         <div v-if="notesStore.activeDatabaseNotes.length === 0" class="text-gray-500 text-center mt-10">
             <p class="mx-4 mb-8 text-center">No database or notes available for this database.</p>
 
@@ -9,16 +9,24 @@
         </div>
 
         <div v-else class="flex justify-end flex-col h-screen overflow-hidden">
-            <div class="flex px-2 py-2 md:px-4 max-h-fit shadow-md">
-                <label for="note-search" class="sr-only">Search notes</label>
-                <input id="note-search" v-model="searchTerm" type="search" placeholder="Search notes"
-                    class="w-1/2 md:w-80 rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
+            <div class="flex px-2 py-2 md:px-4 shadow-md">
+                <div class="w-1/2 md:w-80">
+                    <label for="note-search" class="sr-only">Search notes</label>
+                    <input id="note-search" v-model="searchTerm" type="search" placeholder="Search notes"
+                        class="w-full rounded-full border border-gray-300 px-4 py-2 shadow-sm focus:border-violet-500 focus:outline-none" />
+                </div>
 
-                <div class="hidden md:flex items-center flex-wrap ml-4">
+                <div class="hidden md:flex items-start flex-wrap ml-4 ">
                     <button v-for="tag in filterTagLabels" :key="tag.id" type="button"
                         class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-2 mt-2 shadow-xs cursor-pointer"
                         @click="handleTagFilterChange(tag.id)">
                         {{ tag.label }}
+                    </button>
+
+                    <button v-if="filterTagLabels.length === 0"
+                        class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full mr-2 mt-2 shadow-xs cursor-pointer"
+                        @click="modal = 'tag-selector'">
+                        Select Tags
                     </button>
                 </div>
 
@@ -27,27 +35,34 @@
                     <div v-if="filterTagLabels.length > 0" class="flex flex-1 cursor-pointer">
                         {{ filterTagLabels.length }} Tag{{ filterTagLabels.length > 1 ? 's' : '' }}
                     </div>
-                    <div v-else class="flex flex-1 cursor-pointer items-center">
+                    <div v-else class="flex flex-1 cursor-pointer items-center" @click="modal = 'tag-selector'">
                         Select Tags
                     </div>
                 </div>
             </div>
 
-            <div v-if="filteredNotes.length === 0" class="text-center text-gray-500 py-8">
+            <div v-if="filteredNotes.length === 0" class="flex-1 text-center text-gray-500 py-8">
                 No notes match your search.
             </div>
 
-            <div v-else class="flex-1 overflow-y-auto">
-                <template v-for="item in filteredNotes" :key="item.note[0]">
-                    <NoteListItem :item="item" @handle-tag-filter-change="handleTagFilterChange" :filter-tags />
-                </template>
+            <div v-else class="flex-1 flex flex-col overflow-hidden">
+                <div class="overflow-y-auto flex-1">
+                    <template v-for="item in filteredNotes" :key="item.note[0]">
+                        <NoteListItem :item="item" @handle-tag-filter-change="handleTagFilterChange" :filter-tags />
+                    </template>
+                </div>
+                <div class="pl-4 py-1 text-xs text-gray-500">{{ filteredNotes.length }} notes</div>
             </div>
         </div>
+
+        <NoteTagSelector :filterTags v-if="modal == 'tag-selector'" @handle-tag-filter-change="handleTagFilterChange"
+            @close-me="modal = ''" />
     </div>
 </template>
 
 <script setup lang="ts">
     import NoteListItem from '@/components/notes/NoteListItem.vue';
+    import NoteTagSelector from '@/components/notes/NoteTagSelector.vue';
     import router from '@/router';
     import { useNotesStore } from '@/stores/notes';
     import { useTagsStore } from '@/stores/tags';
@@ -55,6 +70,7 @@
 
     const notesStore = useNotesStore();
     const tagsStore = useTagsStore();
+    const modal = ref<'' | 'tag-selector'>('')
 
     const searchTerm = ref('');
     const debouncedSearchTerm = ref('');
