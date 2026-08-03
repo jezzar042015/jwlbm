@@ -15,6 +15,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: [
+          '**/*.{js,css,html,png,svg,ico,webp,woff,woff2}'
+        ],
+      },
       manifest: {
         name: 'JW Library Backup Viewer',
         short_name: 'JWLBM',
