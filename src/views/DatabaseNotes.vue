@@ -10,6 +10,9 @@
 
         <div v-else class="flex justify-end flex-col h-screen overflow-hidden">
             <div class="flex px-2 py-2 md:px-4 shadow-md">
+                <div class="mr-2 flex items-center" @click="gotoLibraries">
+                    <HomeIcon class="w-6 h-6 text-gray-500" />
+                </div>
                 <div class="w-1/2 md:w-80">
                     <label for="note-search" class="sr-only">Search notes</label>
                     <input id="note-search" v-model="searchTerm" type="search" placeholder="Search notes"
@@ -32,7 +35,8 @@
 
                 <div
                     class="flex md:hidden *:flex-wrap ml-4 shadow-xs py-1 px-4 rounded-full text-xs items-center  bg-violet-800 text-white">
-                    <div v-if="filterTagLabels.length > 0" class="flex flex-1 cursor-pointer">
+                    <div v-if="filterTagLabels.length > 0" class="flex flex-1 cursor-pointer"
+                        @click="modal = 'tag-selector'">
                         {{ filterTagLabels.length }} Tag{{ filterTagLabels.length > 1 ? 's' : '' }}
                     </div>
                     <div v-else class="flex flex-1 cursor-pointer items-center" @click="modal = 'tag-selector'">
@@ -61,6 +65,7 @@
 </template>
 
 <script setup lang="ts">
+    import HomeIcon from '@/components/icons/HomeIcon.vue';
     import NoteListItem from '@/components/notes/NoteListItem.vue';
     import NoteTagSelector from '@/components/notes/NoteTagSelector.vue';
     import router from '@/router';
@@ -125,5 +130,9 @@
 
     const gotoImport = () => {
         router.push({ name: 'import' });
+    }
+
+    const gotoLibraries = () => {
+        router.push({ name: 'databases' });
     }
 </script>
