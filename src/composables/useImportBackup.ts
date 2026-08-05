@@ -122,6 +122,10 @@ export function useImportBackup() {
             await report(100, 'Import failed');
             throw err;
         } finally {
+            await notesStore.persist();
+            await tagsStore.persist();
+            await userMarksStore.persist();
+            await locationsStore.persist();
             loading.value = false;
         }
     }
@@ -166,6 +170,43 @@ export function useImportBackup() {
         })
     }
 
+    /**
+     * Rehydrates persisted imports by loading all databases and their components
+     * (notes, tags, tagMaps, userMarks, locations) and attaching them to the notes.
+     * Handles all edge cases gracefully without throwing errors.
+     */
+    async function rehydratePersistedImports() {
+        if (!notesStore.notes || notesStore.notes.length === 0) {
+            return;
+        }
+
+        for (const notesEntry of notesStore.notes) {
+            const dbId = notesEntry.db_id;
+            const tagMapsForDb = tagsStore.tagMaps.find((entry) => entry.db_id === dbId)?.tagMaps ?? [];
+            const userMarksForDb = userMarksStore.markers.find((entry) => entry.db_id === dbId)?.userMarks ?? [];
+            const locationsForDb = locationsStore.locations.find((entry) => entry.db_id === dbId)?.locations ?? [];
+
+            if (!notesEntry.notes || notesEntry.notes.length === 0) {
+                continue;
+            }
+
+            const attachedNotes = await attachTagMapsToNotes(
+                notesEntry.notes,
+                tagMapsForDb as unknown as NoteTagMapRow[],
+                userMarksForDb,
+                locationsForDb
+            );
+
+            const index = notesStore.notes.indexOf(notesEntry);
+            if (index !== -1) {
+                notesStore.notes[index] = {
+                    ...notesEntry,
+                    notesWithTagMaps: attachedNotes,
+                } as typeof notesEntry & { notesWithTagMaps: typeof attachedNotes };
+            }
+        }
+    }
+
     async function grabTagMaps(db: DatabaseService, id: string, report: (p: number, msg?: string, mapProgress?: number) => Promise<void>) {
         await report(92, 'Loading tag maps...');
 
@@ -175,6 +216,8 @@ export function useImportBackup() {
             tagMaps,
             db_id: id
         });
+
+        tagsStore.persist();
 
         await report(95, 'Attaching tag maps to notes...');
 
@@ -210,5 +253,6 @@ export function useImportBackup() {
     return {
         loading,
         importBackup,
+        rehydratePersistedImports,
     };
 }

@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useDatabaseStore } from "./database";
+import { getCachedPersistedState, readPersistedState, writePersistedState } from "./persistence";
 
 import type { ConflictingNotesState, Note, NotesState, NoteWithTagMap } from "@/database/types/note";
 
@@ -10,6 +11,28 @@ export const useNotesStore = defineStore("notes", () => {
     const dbStore = useDatabaseStore();
 
     const notes = ref<NotesState[]>([]);
+
+    const persist = async () => {
+        await writePersistedState("notes", notes.value);
+    };
+
+    async function hydrate() {
+        const cachedNotes = getCachedPersistedState<NotesState[]>("notes");
+        if (cachedNotes !== undefined) {
+            notes.value = cachedNotes;
+        } else {
+            const persistedNotes = await readPersistedState<NotesState[]>("notes");
+            if (persistedNotes !== null) {
+                notes.value = persistedNotes;
+            }
+        }
+    }
+
+    void hydrate();
+
+    watch(() => notes.value, () => { void persist(); }, { deep: true, flush: "post" });
+
+
 
     /**
      * Creates a comparison key for a note.
@@ -23,12 +46,41 @@ export const useNotesStore = defineStore("notes", () => {
         return `${title}\u0000${content}`;
     };
 
+    const toComparableNotes = (state: NotesState | undefined) => {
+        if (!state) {
+            return [];
+        }
+
+        if ((state.notesWithTagMaps ?? []).length > 0) {
+            return state.notesWithTagMaps ?? [];
+        }
+
+        return (state.notes ?? []).map((note) => ({
+            note,
+            tagMaps: [],
+        }));
+    };
+
+    const activeDatabaseId = computed(() => {
+        return dbStore.activeDatabaseId ?? dbStore.databases[0]?.id;
+    });
+
     const activeDatabaseNotes = computed<NoteWithTagMap[]>(() => {
-        return (
-            notes.value.find(
-                state => state.db_id === dbStore.activeDatabaseId
-            )?.notesWithTagMaps ?? []
+        const activeState = notes.value.find(
+            state => state.db_id === activeDatabaseId.value
         );
+
+        const notesWithTagMaps = activeState?.notesWithTagMaps ?? [];
+
+        if (notesWithTagMaps.length > 0) {
+            return notesWithTagMaps;
+        }
+
+        const rawNotes = activeState?.notes ?? [];
+        return rawNotes.map((note) => ({
+            note,
+            tagMaps: [],
+        }));
     });
 
     /**
@@ -40,27 +92,25 @@ export const useNotesStore = defineStore("notes", () => {
      * to each database and will be regenerated during import.
      */
     const conflictingNoteStates = computed<ConflictingNotesState[]>(() => {
-        const masterDatabase = dbStore.databases.find(db => db.isMaster);
+        const masterDatabaseId = dbStore.databases.find(db => db.isMaster)?.id
+            ?? dbStore.databases[0]?.id
+            ?? notes.value[0]?.db_id;
 
-        if (!masterDatabase) {
+        if (!masterDatabaseId) {
             return [];
         }
 
-        const masterState = notes.value.find(
-            state => state.db_id === masterDatabase.id
-        );
-
-        const masterNotes = masterState?.notesWithTagMaps ?? [];
-
+        const masterState = notes.value.find(state => state.db_id === masterDatabaseId);
+        const comparableMasterNotes = toComparableNotes(masterState as NotesState);
         const masterNoteKeys = new Set(
-            masterNotes.map(({ note }) => getNoteKey(note))
+            comparableMasterNotes.map(({ note }) => getNoteKey(note))
         );
 
         return notes.value
-            .filter(state => state.db_id !== masterDatabase.id)
+            .filter(state => state.db_id !== masterDatabaseId)
             .map<ConflictingNotesState>(state => ({
                 db_id: state.db_id,
-                notes: (state.notesWithTagMaps ?? []).filter(({ note }) => {
+                notes: toComparableNotes(state).filter(({ note }) => {
                     return !masterNoteKeys.has(getNoteKey(note));
                 }),
             }))
@@ -68,7 +118,7 @@ export const useNotesStore = defineStore("notes", () => {
     });
 
     const activeDatabaseConflictingNotes = computed<NoteWithTagMap[]>(() => {
-        const activeId = dbStore.activeDatabaseId;
+        const activeId = activeDatabaseId.value;
 
         return (
             conflictingNoteStates.value.find(state => state.db_id === activeId)
@@ -81,5 +131,7 @@ export const useNotesStore = defineStore("notes", () => {
         activeDatabaseNotes,
         activeDatabaseConflictingNotes,
         conflictingNoteStates,
+        persist,
+        hydrate,
     };
 });
