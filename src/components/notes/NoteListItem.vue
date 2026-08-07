@@ -7,11 +7,12 @@
         <p class="text-gray-600" v-html="formatText(item.note[5])"></p>
         <div v-if="normalizedTagMaps.length > 0">
             <span v-for="tag in tags" :key="tag.id" @click="handleTagClick(tag.id)"
-                class="inline-block text-xs px-2 py-1 rounded-full mr-2 mt-2 shadow-xs"
-                :class="filterTags.includes(tag.id) ? 'bg-black text-white' : 'bg-gray-100 text-gray-800'">
+                class="inline-block text-xs px-3 py-2 rounded-full mr-2 mt-2 shadow-xs"
+                :class="filterTags.includes(tag.id) ? 'bg-black text-white' : 'bg-gray-300/80 text-blue-800'">
                 {{ tag.label }}
             </span>
         </div>
+        <!-- location reference -->
         <div v-if="isStudyBible" class="mt-4 py-2 px-2 border-t border-t-gray-300 flex justify-start gap-2">
             <div class="mt-2">
                 <img src="/1001070103_univ_sqr_lg.jpg" alt="Study Bible thumbnail" class="w-9 h-9" />
@@ -22,6 +23,21 @@
                     {{ bibleBookName }} {{ item.location?.[2] }}:{{ item.note[9] }}
                 </div>
             </div>
+        </div>
+
+        <div v-if="!isMaster" class="mt-4 pt-3 border-t border-t-gray-200">
+            <button v-if="batched" type="button"
+                class="text-xs md:text-sm px-4 py-2 rounded-full cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-60 shadow"
+                :class="selectedForBatch ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-violet-900 text-white hover:bg-violet-800'"
+                :disabled="isMigrating" @click.stop="handleBatchSelectionClick">
+                {{ selectedForBatch ? 'Remove from Selection' : 'Add to Migration List' }}
+            </button>
+
+            <button v-else type="button"
+                class="text-xs md:text-sm px-4 py-2 rounded-full cursor-pointer bg-violet-900 text-white hover:bg-violet-800 transition-colors disabled:cursor-not-allowed disabled:opacity-60 shadow"
+                :disabled="isMigrating" @click.stop="handleCopyToMasterClick">
+                Copy to Master Backup
+            </button>
         </div>
     </div>
 </template>
@@ -35,22 +51,49 @@
     import { computed } from 'vue';
     import type { Location } from '@/database/types/location';
 
-    const { item, filterTags } = defineProps<{
+    const { item, filterTags, isMaster, batched, selectedForBatch, isMigrating } = defineProps<{
         item: {
             note: Note,
             tagMaps: NoteTagMapRow[],
             marker?: UserMark,
             location?: Location
         },
-        filterTags: number[]
+        filterTags: number[],
+        isMaster: boolean,
+        batched: boolean,
+        selectedForBatch: boolean,
+        isMigrating: boolean,
     }>();
 
     const emit = defineEmits<{
         (e: 'handle-tag-filter-change', selectedTagId: number): void;
+        (e: 'toggle-note-batch-selection', noteId: number): void;
+        (e: 'copy-note-to-master', item: {
+            note: Note,
+            tagMaps: NoteTagMapRow[],
+            marker?: UserMark,
+            location?: Location
+        }): void;
     }>();
 
     const handleTagClick = (tagId: number) => {
         emit('handle-tag-filter-change', tagId);
+    };
+
+    const handleBatchSelectionClick = () => {
+        if (isMaster || isMigrating) {
+            return;
+        }
+
+        emit('toggle-note-batch-selection', item.note[0]);
+    };
+
+    const handleCopyToMasterClick = () => {
+        if (isMaster || isMigrating) {
+            return;
+        }
+
+        emit('copy-note-to-master', item);
     };
 
     const tagStore = useTagsStore();
@@ -101,7 +144,7 @@
         } else if (item.marker?.[1] === 6) {
             return 'bg-purple-100';
         } else {
-            return '';
+            return 'bg-white';
         }
     });
 

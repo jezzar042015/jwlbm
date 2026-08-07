@@ -175,13 +175,23 @@ export function useImportBackup() {
      * (notes, tags, tagMaps, userMarks, locations) and attaching them to the notes.
      * Handles all edge cases gracefully without throwing errors.
      */
-    async function rehydratePersistedImports() {
+    async function rehydratePersistedImports(onProgress?: (progress: number, message?: string) => void) {
         if (!notesStore.notes || notesStore.notes.length === 0) {
+            onProgress?.(1, 'No persisted imports to restore.');
             return;
         }
 
-        for (const notesEntry of notesStore.notes) {
+        const notesEntries = [...notesStore.notes];
+        const totalEntries = notesEntries.length;
+
+        for (let index = 0; index < notesEntries.length; index += 1) {
+            const notesEntry = notesEntries[index];
+            if (!notesEntry) {
+                continue;
+            }
+
             const dbId = notesEntry.db_id;
+            onProgress?.(index / totalEntries, `Restoring imported notes (${index + 1}/${totalEntries})...`);
             const tagMapsForDb = tagsStore.tagMaps.find((entry) => entry.db_id === dbId)?.tagMaps ?? [];
             const userMarksForDb = userMarksStore.markers.find((entry) => entry.db_id === dbId)?.userMarks ?? [];
             const locationsForDb = locationsStore.locations.find((entry) => entry.db_id === dbId)?.locations ?? [];
@@ -197,13 +207,15 @@ export function useImportBackup() {
                 locationsForDb
             );
 
-            const index = notesStore.notes.indexOf(notesEntry);
-            if (index !== -1) {
-                notesStore.notes[index] = {
+            const entryIndex = notesStore.notes.indexOf(notesEntry);
+            if (entryIndex !== -1) {
+                notesStore.notes[entryIndex] = {
                     ...notesEntry,
                     notesWithTagMaps: attachedNotes,
                 } as typeof notesEntry & { notesWithTagMaps: typeof attachedNotes };
             }
+
+            onProgress?.((index + 1) / totalEntries, `Restoring imported notes (${index + 1}/${totalEntries})...`);
         }
     }
 
