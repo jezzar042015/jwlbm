@@ -1,7 +1,9 @@
 <template>
-    <div class="p-2 md:p-6 bg-gray-50 min-h-screen flex flex-col">
-        <div class="p-2 md:px-5 md:py-2 flex flex-col items-end w-full">
-            <button type="button" @click="gotoImport" class="shadow uppercase text-xs px-4 py-2 bg-white rounded-full">
+    <div class="p-2 md:p-6 bg-gray-50 min-h-screen flex flex-col items-center">
+        <div class="p-2 md:py-2 flex w-full items-center justify-between md:max-w-3xl">
+            <div class="font-semibold text-xl">Back Up Files</div>
+            <button type="button" @click="gotoImport"
+                class="shadow uppercase text-sm px-4 py-2 bg-violet-900 text-white rounded-full">
                 Add Backup File
             </button>
         </div>

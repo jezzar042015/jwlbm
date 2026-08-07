@@ -8,11 +8,6 @@
                     <p class="text-sm text-gray-600">{{ fileName }}</p>
                 </div>
 
-                <!-- Progress Bar -->
-                <!-- <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-violet-900 h-2 rounded-full transition-all duration-300"
-                        :style="{ width: `${progress}%` }"></div>
-                </div> -->
                 <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div class="progress-fill h-full rounded-full" :style="{ width: `${progress}%` }"></div>
                 </div>
@@ -49,7 +44,7 @@
                 </div>
                 <p class="mt-4 text-xs text-gray-500">Supported file type: .jwlibrary</p>
                 <div class="pt-2 flex items-center justify-center w-full " v-if="dbStore.databases.length > 0">
-                    <button @click.stop="gotoDatabases"
+                    <button type="button" @click.stop="gotoDatabases"
                         class="bg-violet-900 text-white px-8 py-3 rounded-full shadow cursor-pointer">
                         Go to Loaded Backup Files
                     </button>
@@ -91,6 +86,7 @@
             });
         } finally {
             isLoading.value = false;
+            router.push({ name: 'databases' })
         }
     }
 

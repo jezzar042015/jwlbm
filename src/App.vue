@@ -12,7 +12,7 @@
 
         <div class="mt-6" v-if="hydrationProgress !== null">
           <div class="h-2 overflow-hidden rounded-full bg-gray-200">
-            <div class="h-full rounded-full bg-violet-700 transition-[width] duration-200 ease-out"
+            <div class="progress-fill h-full rounded-full transition-[width] duration-200 ease-out"
               :style="{ width: `${hydrationProgress}%` }" />
           </div>
           <p class="mt-2 text-xs font-medium text-gray-500">{{ Math.round(hydrationProgress) }}% complete</p>
@@ -43,3 +43,49 @@
     }
   );
 </script>
+
+<style scoped>
+  .progress-fill
+  {
+    background: linear-gradient(90deg,
+        #4c1d95 0%,
+        #7c3aed 25%,
+        #c4b5fd 50%,
+        #7c3aed 75%,
+        #4c1d95 100%);
+
+    background-size: 300% 100%;
+    animation: progress-gradient 2s linear infinite, progress-glow 1.8s ease-in-out infinite alternate;
+    box-shadow: 0 0 0 rgba(124, 58, 237, 0.35);
+
+    transition: width 300ms ease;
+  }
+
+  @keyframes progress-gradient
+  {
+    0%
+    {
+      background-position: 300% 0;
+    }
+
+    100%
+    {
+      background-position: -100% 0;
+    }
+  }
+
+  @keyframes progress-glow
+  {
+    0%
+    {
+      box-shadow: 0 0 2px rgba(124, 58, 237, 0.25), 0 0 6px rgba(124, 58, 237, 0.18);
+      filter: saturate(1);
+    }
+
+    100%
+    {
+      box-shadow: 0 0 6px rgba(124, 58, 237, 0.45), 0 0 14px rgba(124, 58, 237, 0.3);
+      filter: saturate(1.2);
+    }
+  }
+</style>

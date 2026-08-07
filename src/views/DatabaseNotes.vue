@@ -38,7 +38,7 @@
                     class="flex md:hidden *:flex-wrap ml-4 shadow-xs py-1 px-4 rounded-full text-xs items-center  bg-violet-800 text-white">
                     <div v-if="filterTagLabels.length > 0" class="flex flex-1 cursor-pointer"
                         @click="modal = 'tag-selector'">
-                        {{ filterTagLabels.length }} Tag{{ filterTagLabels.length > 1 ? 's' : '' }}
+                        Selected {{ filterTagLabels.length }} Tag{{ filterTagLabels.length > 1 ? 's' : '' }}
                     </div>
                     <div v-else class="flex flex-1 cursor-pointer items-center" @click="modal = 'tag-selector'">
                         Select Tags
